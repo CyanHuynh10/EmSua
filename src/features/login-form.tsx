@@ -1,6 +1,5 @@
 "use client";
 
-import { LockKeyhole, LogIn, PawPrint } from "lucide-react";
 import { useRef, useState, type FormEvent } from "react";
 import { api } from "./client-api";
 import ui from "@/components/ui/ui.module.css";
@@ -28,20 +27,10 @@ export function LoginForm() {
     }
   }
 
-  return <main className={styles.login}>
-    <div className={styles.frame}>
-      <div className={styles.brand}><PawPrint size={25} /> Sữa Smart Home</div>
-      <section className={styles.card}>
-        <div className={styles.lock}><LockKeyhole size={27} /></div>
-        <h1>Đăng nhập</h1>
-        <p>Vào nhà của Sữa bằng tài khoản quản trị.</p>
-        <form onSubmit={submit}>
-          <label className={ui.field}>Tài khoản<input className={ui.input} name="username" autoComplete="username" maxLength={100} required /></label>
-          <label className={ui.field}>Mật khẩu<input className={ui.input} name="password" type="password" autoComplete="current-password" maxLength={256} required /></label>
-          {error && <p className={ui.error} role="alert">{error}</p>}
-          <button className={`${ui.button} ${ui.primary}`} disabled={busy}><LogIn size={18} />{busy ? "Đang đăng nhập…" : "Đăng nhập"}</button>
-        </form>
-      </section>
-    </div>
-  </main>;
+  return <form className={styles.form} aria-label="Đăng nhập" onSubmit={submit}>
+    <input className={ui.input} name="username" aria-label="Tài khoản" placeholder="Tài khoản" autoComplete="username" maxLength={100} required />
+    <input className={ui.input} name="password" aria-label="Mật khẩu" placeholder="Mật khẩu" type="password" autoComplete="current-password" maxLength={256} required />
+    {error && <p className={ui.error} role="alert">{error}</p>}
+    <button className={`${ui.button} ${ui.primary}`} disabled={busy}>{busy ? "Đang đăng nhập…" : "Đăng nhập"}</button>
+  </form>;
 }

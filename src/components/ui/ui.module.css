@@ -1,3 +1,4 @@
+.button, .field, .error, .toast { font-family: var(--font-bold); }
 .button {
   min-height: 44px; display: inline-flex; align-items: center; justify-content: center; gap: 8px;
   padding: 8px 15px; background: var(--paper); color: var(--color-ink); border: var(--border);

@@ -11,6 +11,9 @@ test("protects routes and APIs, validates login and preserves the session throug
   expect(response.status()).toBe(401);
   await page.goto("/settings");
   await expect(page).toHaveURL(/\/login$/);
+  await expect(page.getByRole("heading", { name: "Nhà của Sữa" })).toHaveCSS("font-family", /cintra/i);
+  await expect(page.getByLabel("Tài khoản")).toHaveCSS("font-family", /Segoe UI/);
+  await expect(page.getByLabel("Tài khoản")).toHaveCSS("font-weight", "400");
   await login(page, "wrong password");
   await expect(page.getByRole("main").getByRole("alert")).toHaveText("Sai tài khoản hoặc mật khẩu.");
   await login(page);
@@ -74,25 +77,36 @@ test("controls the light and camera and detects a stale settings version", async
   await expect(field).toHaveValue("1500");
 });
 
-test("renders all required widths without horizontal overflow, console errors or blocked navigation", async ({ page }) => {
+test("renders all required widths without horizontal overflow, console errors or blocked navigation", async ({ page }, testInfo) => {
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
   page.on("console", (message) => { if (message.type() === "error") errors.push(message.text()); });
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/login");
+  const form = page.getByRole("form", { name: "Đăng nhập" });
+  await expect(form.locator("input")).toHaveCount(2);
+  await expect(form.getByRole("button")).toHaveCount(1);
+  for (const width of [360, 390, 768, 1024, 1440]) {
+    await page.setViewportSize({ width, height: 900 });
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
+    await expect(form.getByRole("button", { name: "Đăng nhập" })).toBeInViewport();
+    if (width === 390 || width === 1440) await page.screenshot({ path: testInfo.outputPath(`login-${width}.png`) });
+  }
   await login(page);
   await expect(page.getByRole("heading", { name: "Thiết bị" })).toBeVisible();
   for (const width of [360, 390, 768, 1024, 1440]) {
     await page.setViewportSize({ width, height: 900 });
     const nav = page.getByRole("navigation", { name: "Điều hướng chính" });
+    await expect(nav.getByRole("link", { name: "Tổng quan" })).toHaveCSS("font-family", /cintra/i);
     await expect(nav.getByRole("link", { name: "Tổng quan" })).toHaveAttribute("aria-current", "page");
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
     const bounds = await nav.boundingBox();
     if (width <= 800) expect(bounds!.y + bounds!.height).toBeCloseTo(900);
     else expect(bounds!.x + bounds!.width).toBeLessThan(230);
     expect(await page.getByRole("link", { name: "Điều chỉnh đèn" }).evaluate((element) => parseFloat(getComputedStyle(element).transitionDuration))).toBeLessThan(.01);
-    await page.screenshot({ path: `fix/dashboard-${width}.png`, fullPage: true });
+    await page.screenshot({ path: testInfo.outputPath(`dashboard-${width}.png`), fullPage: true });
   }
+  await expect(page.getByText("Cho ăn, điều chỉnh đèn và kiểm tra camera từ một nơi.")).toHaveCSS("font-family", /Segoe UI/);
   for (const [name, heading] of [["Cho ăn", "Máy cho ăn"], ["Đèn", "Đèn"], ["Camera", "Camera"], ["Cài đặt", "Cài đặt"]]) {
     await page.getByRole("navigation").getByRole("link", { name, exact: true }).click();
     await expect(page.getByRole("heading", { name: heading, exact: true, level: 1 })).toBeVisible();

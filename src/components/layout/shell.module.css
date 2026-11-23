@@ -1,4 +1,5 @@
 .shell { min-height: 100dvh; display: grid; grid-template-columns: 225px minmax(0,1fr); }
+.brand small, .navLink, .mode, .breadcrumb, .mobileBrand, .logout { font-family: var(--font-bold); }
 .sidebar { display: flex; position: sticky; height: 100dvh; top: 0; flex-direction: column; gap: 30px; padding: 24px 17px; border-right: var(--border); background: var(--paper); }
 .brand { display: flex; align-items: center; gap: 12px; padding: 3px 6px; }
 .mark { width: 46px; height: 46px; display: grid; place-items: center; border: var(--border); border-radius: 10px; background: var(--color-yellow); box-shadow: 3px 3px 0 var(--color-ink); }

@@ -1,12 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { Activity as ActivityIcon, CalendarClock, Camera, CircleAlert, Clock3, Lightbulb, PawPrint, RefreshCw, Sparkles, Utensils } from "lucide-react";
+import { Activity as ActivityIcon, CalendarClock, Camera, CircleAlert, Clock3, Lightbulb, RefreshCw, Utensils } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { api } from "../client-api";
 import { useHome } from "../home-provider";
 import { localTime, TIME_ZONE, type Activity, type CameraState, type Outcome } from "../model";
 import { DispenseButton } from "../feeder/dispense-button";
+import { HomeHero } from "./home-hero";
 import ui from "@/components/ui/ui.module.css";
 import styles from "./view.module.css";
 
@@ -116,20 +117,9 @@ function RecentActivity({ entries }: { entries: Activity[] }) {
 
 export function Dashboard() {
   const { data } = useHome();
-  const dayLabel = data ? new Intl.DateTimeFormat("vi-VN", {
-    timeZone: TIME_ZONE, weekday: "long", day: "numeric", month: "long",
-  }).format(new Date(data.serverTime)) : null;
 
   return <div className={styles.page}>
-    <section className={styles.hero}>
-      <div className={styles.heroCopy}>
-        <div className={styles.heroLabel}><PawPrint size={16} /> SỮA SMART HOME</div>
-        <h1>Nhà của Sữa</h1>
-        <p>Cho ăn, điều chỉnh đèn và kiểm tra camera từ một nơi.</p>
-        <div className={styles.heroMeta}><Pill tone="yellow">Mock Mode</Pill>{dayLabel && <span><CalendarClock size={17} /> {dayLabel}</span>}</div>
-      </div>
-      <div className={styles.heroArt} aria-hidden="true"><Sparkles className={styles.star1} size={38} /><span><PawPrint size={74} strokeWidth={1.75} /></span><Sparkles className={styles.star2} size={26} /></div>
-    </section>
+    <HomeHero serverTime={data?.serverTime} />
     <DataBoundary>{data && <>
       <div className={styles.sectionHeading}>
         <h2>Thiết bị</h2><span className={styles.muted}>Chưa kết nối ESP32</span>
