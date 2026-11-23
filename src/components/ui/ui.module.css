@@ -1,0 +1,35 @@
+.button {
+  min-height: 44px; display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 8px 15px; background: var(--paper); color: var(--color-ink); border: var(--border);
+  border-radius: 8px; font-weight: 720; box-shadow: 2px 2px 0 var(--color-ink); text-align: center;
+  transition: transform var(--speed), box-shadow var(--speed), background var(--speed);
+}
+.button:hover:not(:disabled) { transform: translate(-1px,-1px); box-shadow: 3px 3px 0 var(--color-ink); }
+.button:active:not(:disabled) { transform: translate(2px,2px); box-shadow: none; }
+.primary { background: var(--color-yellow); }
+.iconButton {
+  border: 0; color: inherit; background: transparent; display: grid; place-items: center;
+  border-radius: 6px; width: 44px; height: 44px; padding: 0; flex-shrink: 0;
+}
+.iconButton:hover { background: #19191912; }
+.input {
+  min-height: 45px; min-width: 0; width: 100%; border: var(--border); border-radius: 8px;
+  padding: 8px 11px; background: var(--paper); color: var(--color-ink);
+}
+.field { display: grid; gap: 7px; font-weight: 650; min-width: 0; }
+.error { color: #a01d38; font-weight: 650; }
+.actions { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+.toastRegion { position: fixed; top: max(16px, env(safe-area-inset-top)); left: 50%; transform: translateX(-50%); width: min(90vw, 460px); z-index: 20; }
+.toast {
+  display: flex; align-items: center; gap: 10px; background: var(--color-mint);
+  border: var(--border); border-radius: 10px; box-shadow: var(--shadow); padding: 5px 5px 5px 13px;
+  animation: appear var(--speed) ease-out both; font-weight: 680;
+}
+.toast span { flex: 1; }
+.toastError { background: #ffa8b9; }
+.dialog { width: min(90vw, 440px); max-height: 90dvh; padding: 0; border: var(--border); border-radius: var(--radius); box-shadow: var(--shadow); background: var(--paper); color: var(--color-ink); }
+.dialog[open] { animation: appear var(--speed) ease-out both; }
+.dialog::backdrop { background: #19191988; }
+.dialogInner { padding: 20px; display: grid; gap: 16px; }
+.dialogTitle { display: flex; justify-content: space-between; align-items: center; gap: 6px; }
+@keyframes appear { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }

@@ -1,0 +1,9 @@
+.login { min-height: 100dvh; display: grid; place-items: center; padding: 28px 20px; background-image: radial-gradient(#19191925 1px, transparent 1px); background-size: 18px 18px; }
+.frame { width: min(100%, 435px); display: grid; gap: 16px; }
+.brand { display: flex; gap: 10px; align-items: center; font-size: 1.15rem; font-weight: 800; }
+.brand svg { background: var(--color-yellow); border: var(--border); width: 43px; height: 43px; padding: 7px; border-radius: 8px; box-shadow: 2px 2px 0 var(--color-ink); }
+.card { background: var(--paper); border: var(--border); border-radius: var(--radius); box-shadow: 6px 6px 0 var(--color-ink); padding: clamp(21px,6vw,35px); display: grid; gap: 12px; }
+.lock { background: var(--color-mint); border: var(--border); border-radius: 10px; width: 50px; height: 50px; display: grid; place-items: center; }
+.card h1 { font-size: 2rem; letter-spacing: -.045em; }
+.card p { color: var(--muted); }
+.card form { display: grid; gap: 16px; margin-top: 9px; }
