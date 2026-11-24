@@ -2,7 +2,7 @@ import { expect, test, type Page } from "@playwright/test";
 
 async function login(page: Page, password = process.env.SUA_E2E_PASSWORD!) {
   await page.getByLabel("Tài khoản").fill("e2e-admin");
-  await page.getByLabel("Mật khẩu").fill(password);
+  await page.getByLabel("Mật khẩu", { exact: true }).fill(password);
   await page.getByRole("button", { name: "Đăng nhập" }).click();
 }
 
@@ -11,9 +11,12 @@ test("protects routes and APIs, validates login and preserves the session throug
   expect(response.status()).toBe(401);
   await page.goto("/settings");
   await expect(page).toHaveURL(/\/login$/);
-  await expect(page.getByRole("heading", { name: "Nhà của Sữa" })).toHaveCSS("font-family", /cintra/i);
-  await expect(page.getByLabel("Tài khoản")).toHaveCSS("font-family", /Segoe UI/);
-  await expect(page.getByLabel("Tài khoản")).toHaveCSS("font-weight", "400");
+  await expect(page.getByRole("heading", { name: "Đăng nhập" })).toHaveCSS("font-family", /gotham.?ultra/i);
+  await expect(page.getByLabel("Tài khoản")).toHaveCSS("font-family", /gotham.?light/i);
+  await page.getByRole("button", { name: "Hiện mật khẩu" }).click();
+  await expect(page.getByLabel("Mật khẩu", { exact: true })).toHaveAttribute("type", "text");
+  await page.getByRole("button", { name: "Ẩn mật khẩu" }).click();
+  await expect(page.getByLabel("Mật khẩu", { exact: true })).toHaveAttribute("type", "password");
   await login(page, "wrong password");
   await expect(page.getByRole("main").getByRole("alert")).toHaveText("Sai tài khoản hoặc mật khẩu.");
   await login(page);
@@ -85,7 +88,7 @@ test("renders all required widths without horizontal overflow, console errors or
   await page.goto("/login");
   const form = page.getByRole("form", { name: "Đăng nhập" });
   await expect(form.locator("input")).toHaveCount(2);
-  await expect(form.getByRole("button")).toHaveCount(1);
+  await expect(form.getByRole("button", { name: "Đăng nhập" })).toHaveCount(1);
   for (const width of [360, 390, 768, 1024, 1440]) {
     await page.setViewportSize({ width, height: 900 });
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
@@ -97,7 +100,7 @@ test("renders all required widths without horizontal overflow, console errors or
   for (const width of [360, 390, 768, 1024, 1440]) {
     await page.setViewportSize({ width, height: 900 });
     const nav = page.getByRole("navigation", { name: "Điều hướng chính" });
-    await expect(nav.getByRole("link", { name: "Tổng quan" })).toHaveCSS("font-family", /cintra/i);
+    await expect(nav.getByRole("link", { name: "Tổng quan" })).toHaveCSS("font-family", /gotham.?ultra/i);
     await expect(nav.getByRole("link", { name: "Tổng quan" })).toHaveAttribute("aria-current", "page");
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
     const bounds = await nav.boundingBox();
@@ -106,7 +109,8 @@ test("renders all required widths without horizontal overflow, console errors or
     expect(await page.getByRole("link", { name: "Điều chỉnh đèn" }).evaluate((element) => parseFloat(getComputedStyle(element).transitionDuration))).toBeLessThan(.01);
     await page.screenshot({ path: testInfo.outputPath(`dashboard-${width}.png`), fullPage: true });
   }
-  await expect(page.getByText("Cho ăn, điều chỉnh đèn và kiểm tra camera từ một nơi.")).toHaveCSS("font-family", /Segoe UI/);
+  await expect(page.getByRole("heading", { name: "Nhà của Sữa" })).toHaveCSS("font-family", /cintra/i);
+  await expect(page.getByText("Cho ăn, điều chỉnh đèn và kiểm tra camera từ một nơi.")).toHaveCSS("font-family", /gotham.?light/i);
   for (const [name, heading] of [["Cho ăn", "Máy cho ăn"], ["Đèn", "Đèn"], ["Camera", "Camera"], ["Cài đặt", "Cài đặt"]]) {
     await page.getByRole("navigation").getByRole("link", { name, exact: true }).click();
     await expect(page.getByRole("heading", { name: heading, exact: true, level: 1 })).toBeVisible();

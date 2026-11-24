@@ -1,4 +1,4 @@
-.button, .field, .error, .toast { font-family: var(--font-bold); }
+.button { font-family: var(--font-bold); }
 .button {
   min-height: 44px; display: inline-flex; align-items: center; justify-content: center; gap: 8px;
   padding: 8px 15px; background: var(--paper); color: var(--color-ink); border: var(--border);
@@ -17,14 +17,14 @@
   min-height: 45px; min-width: 0; width: 100%; border: var(--border); border-radius: 8px;
   padding: 8px 11px; background: var(--paper); color: var(--color-ink);
 }
-.field { display: grid; gap: 7px; font-weight: 650; min-width: 0; }
-.error { color: #a01d38; font-weight: 650; }
+.field { display: grid; gap: 7px; min-width: 0; }
+.error { color: #a01d38; }
 .actions { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
 .toastRegion { position: fixed; top: max(16px, env(safe-area-inset-top)); left: 50%; transform: translateX(-50%); width: min(90vw, 460px); z-index: 20; }
 .toast {
   display: flex; align-items: center; gap: 10px; background: var(--color-mint);
   border: var(--border); border-radius: 10px; box-shadow: var(--shadow); padding: 5px 5px 5px 13px;
-  animation: appear var(--speed) ease-out both; font-weight: 680;
+  animation: appear var(--speed) ease-out both;
 }
 .toast span { flex: 1; }
 .toastError { background: #ffa8b9; }

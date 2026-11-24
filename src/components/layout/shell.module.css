@@ -1,16 +1,17 @@
 .shell { min-height: 100dvh; display: grid; grid-template-columns: 225px minmax(0,1fr); }
-.brand small, .navLink, .mode, .breadcrumb, .mobileBrand, .logout { font-family: var(--font-bold); }
+.brand, .brand strong, .breadcrumb, .mobileBrand { font-family: var(--font-brand); font-weight: 700; }
+.navLink[aria-current=page], .logout { font-family: var(--font-bold); font-weight: 700; }
 .sidebar { display: flex; position: sticky; height: 100dvh; top: 0; flex-direction: column; gap: 30px; padding: 24px 17px; border-right: var(--border); background: var(--paper); }
 .brand { display: flex; align-items: center; gap: 12px; padding: 3px 6px; }
 .mark { width: 46px; height: 46px; display: grid; place-items: center; border: var(--border); border-radius: 10px; background: var(--color-yellow); box-shadow: 3px 3px 0 var(--color-ink); }
 .brand strong { display: block; font-size: 1.45rem; line-height: 1; letter-spacing: -.04em; }
 .brand small { display: block; margin-top: 5px; font-size: .72rem; letter-spacing: .11em; font-weight: 800; }
 .nav { display: grid; gap: 9px; }
-.navLink { display: flex; min-height: 46px; gap: 11px; align-items: center; padding: 8px 10px; border: 2px solid transparent; border-radius: 8px; font-weight: 670; transition: background var(--speed), box-shadow var(--speed); }
+.navLink { display: flex; min-height: 46px; gap: 11px; align-items: center; padding: 8px 10px; border: 2px solid transparent; border-radius: 8px; transition: background var(--speed), box-shadow var(--speed); }
 .navLink:hover { background: #f2efe5; }
 .navLink[aria-current=page] { background: var(--color-yellow); border-color: var(--color-ink); box-shadow: 3px 3px 0 var(--color-ink); }
 .footer { margin-top: auto; padding: 14px 10px 0; border-top: 1px solid var(--line); }
-.mode { display: flex; align-items: center; gap: 8px; font-weight: 750; }
+.mode { display: flex; align-items: center; gap: 8px; }
 .mode span { width: 11px; height: 11px; border: var(--border); border-radius: 50%; background: var(--color-yellow); }
 .footer p { margin-top: 4px; color: var(--muted); font-size: .86rem; }
 .content { min-width: 0; }
@@ -31,7 +32,7 @@
   .mobileBrand svg { padding: 5px; width: 33px; height: 33px; border: var(--border); border-radius: 7px; background: var(--color-yellow); }
   .nav { position: fixed; z-index: 5; bottom: 0; left: 0; width: 100%; background: var(--paper); display: grid; grid-template-columns: repeat(5, minmax(0,1fr)); gap: 3px; padding: 6px 7px max(7px,env(safe-area-inset-bottom)); border-top: var(--border); }
   .navLink { flex-direction: column; justify-content: center; gap: 3px; padding: 4px 0; min-height: 48px; font-size: .75rem; white-space: nowrap; }
-  .navLink[aria-current=page] { box-shadow: none; }
+  .navLink[aria-current=page] { box-shadow: none; font-size: .7rem; }
   .topbar { min-height: 59px; }
   .main { padding-bottom: calc(95px + env(safe-area-inset-bottom)); }
 }

@@ -9,6 +9,20 @@ const cintra = localFont({
   display: "swap",
   adjustFontFallback: false,
 });
+const gothamLight = localFont({
+  src: "../../font/SVN-Gotham Light.otf",
+  variable: "--font-gotham-light",
+  weight: "300",
+  display: "swap",
+  adjustFontFallback: false,
+});
+const gothamUltra = localFont({
+  src: "../../font/SVN-Gotham Ultra.otf",
+  variable: "--font-gotham-ultra",
+  weight: "600 950",
+  display: "swap",
+  adjustFontFallback: false,
+});
 
 export const metadata: Metadata = {
   title: { default: "Sữa Smart Home", template: "%s | Sữa Smart Home" },
@@ -17,5 +31,5 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <html lang="vi" className={cintra.variable}><body>{children}</body></html>;
+  return <html lang="vi" className={`${cintra.variable} ${gothamLight.variable} ${gothamUltra.variable}`}><body>{children}</body></html>;
 }

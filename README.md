@@ -6,7 +6,7 @@
 
 | Thư mục | Nội dung |
 | --- | --- |
-| `font/` | SVN-Cintra cho chữ đậm |
+| `font/` | SVN-Cintra cho thương hiệu Sữa, SVN-Gotham Ultra cho tiêu đề đậm và SVN-Gotham Light cho nội dung |
 | `src/app/` | Next.js App Router, trang đăng nhập, các trang điều khiển và Route Handlers |
 | `src/components/`, `src/features/` | React, Lucide, CSS Modules và các luồng tương tác |
 | `src/server/`, `src/devices/` | Xác thực, truy cập Supabase, adapter Mock và điểm tích hợp ESP32 |
