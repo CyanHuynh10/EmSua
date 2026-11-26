@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useToast } from "@/components/ui/toast";
 import { api, ApiError } from "./client-api";
 import { POLL_INTERVAL, type Snapshot } from "./model";
@@ -24,6 +24,7 @@ export function HomeProvider({ children }: { children: ReactNode }) {
   const [data, setData] = useState<Snapshot | null>(null);
   const [issue, setIssue] = useState("");
   const last = useRef<Snapshot | null>(null);
+  const path = usePathname();
   const router = useRouter();
   const toast = useToast();
 
@@ -74,6 +75,14 @@ export function HomeProvider({ children }: { children: ReactNode }) {
       document.removeEventListener("visibilitychange", poll);
     };
   }, [refresh, router]);
+
+  const fast = Boolean(data?.controller && (path === "/settings" ||
+    (data.controller.mode === "simulation" && (path === "/lighting" || path === "/"))));
+  useEffect(() => {
+    if (!fast) return;
+    const interval = window.setInterval(() => { if (!document.hidden) void refresh(); }, 3000);
+    return () => window.clearInterval(interval);
+  }, [fast, refresh]);
 
   return <Context.Provider value={{ data, issue, refresh }}>{children}</Context.Provider>;
 }

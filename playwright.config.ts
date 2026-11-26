@@ -1,10 +1,11 @@
-import { randomBytes, scryptSync } from "node:crypto";
+import { createHash, randomBytes, scryptSync } from "node:crypto";
 import { defineConfig, devices } from "@playwright/test";
 
 const origin = "http://127.0.0.1:3100";
 const database = "http://127.0.0.1:54329";
 const password = process.env.SUA_E2E_PASSWORD ??= randomBytes(24).toString("hex");
 const databaseKey = process.env.SUA_E2E_DATABASE_KEY ??= randomBytes(24).toString("hex");
+const deviceToken = process.env.SUA_E2E_LIGHTING_TOKEN ??= randomBytes(32).toString("base64url");
 const salt = randomBytes(16);
 const hash = scryptSync(password, salt, 64);
 const channel = process.env.SUA_E2E_BROWSER_CHANNEL;
@@ -24,6 +25,7 @@ export default defineConfig({
         APP_ORIGIN: origin, SUPABASE_URL: database, SUPABASE_SECRET_KEY: databaseKey,
         ADMIN_USERNAME: "e2e-admin", ADMIN_PASSWORD_HASH: `scrypt:${salt.toString("hex")}:${hash.toString("hex")}`,
         SESSION_SECRET: randomBytes(32).toString("hex"), DEVICE_MODE: "mock", MOCK_FEEDER_FAILURE: "0",
+        LIGHTING_DEVICE_TOKEN_HASH: createHash("sha256").update(deviceToken).digest("hex"),
       },
     },
   ],

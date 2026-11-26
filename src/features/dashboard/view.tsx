@@ -60,6 +60,16 @@ const labels: Record<string, string> = {
   cancel_feed: "Đã hủy lịch cho ăn",
   light_schedule: "Đã lưu lịch đèn",
   cancel_light: "Đã hủy lịch đèn",
+  "lighting.command_created": "Đã gửi lệnh đèn",
+  "lighting.command_claimed": "ESP32 đã nhận lệnh đèn",
+  "lighting.command_completed": "ESP32 đã xác nhận lệnh đèn",
+  "lighting.command_failed": "Lệnh đèn gặp lỗi",
+  "lighting.command_expired": "Lệnh đèn hết hạn",
+  "lighting.command_cancelled": "Lệnh đèn đã bị hủy",
+  "lighting.local_power_changed": "Nguồn đèn đã đổi trên Wokwi",
+  "lighting.local_brightness_changed": "Độ sáng đã đổi trên Wokwi",
+  "device.connected": "ESP32 Wokwi đã kết nối",
+  "device.disconnected": "ESP32 Wokwi đã mất kết nối",
 };
 
 const scheduleActions: Record<string, string> = { feed: "Cho ăn", on: "Bật đèn", off: "Tắt đèn" };
@@ -117,12 +127,14 @@ function RecentActivity({ entries }: { entries: Activity[] }) {
 
 export function Dashboard() {
   const { data } = useHome();
+  const light = data?.light;
+  const controller = data?.controller?.mode === "simulation" ? data.controller : null;
 
   return <div className={styles.page}>
     <HomeHero serverTime={data?.serverTime} />
     <DataBoundary>{data && <>
       <div className={styles.sectionHeading}>
-        <h2>Thiết bị</h2><span className={styles.muted}>Chưa kết nối ESP32</span>
+        <h2>Thiết bị</h2><span className={styles.muted}>{controller ? `Wokwi · ${controller.online ? "Online" : "Offline"}` : "Chưa kết nối ESP32"}</span>
       </div>
       <div className={styles.deviceGrid}>
         <section className={styles.deviceCard}>
@@ -133,8 +145,8 @@ export function Dashboard() {
         </section>
         <section className={styles.deviceCard}>
           <div className={styles.deviceTop}><div className={`${styles.deviceIcon} ${styles.yellow}`}><Lightbulb size={25} /></div>
-            <Pill tone={data.light.power ? "mint" : "neutral"}>{data.light.power ? "Đang bật" : "Đã tắt"}</Pill></div>
-          <h3>Đèn</h3><p>Mức sáng đã lưu · {data.light.brightness}%</p><Link className={ui.button} href="/lighting">Điều chỉnh đèn</Link>
+            <Pill tone={light?.power ? "mint" : "neutral"}>{light ? light.power ? "Đang bật" : "Đã tắt" : "Chưa nhận trạng thái"}</Pill></div>
+          <h3>Đèn</h3><p>{light ? `${controller ? "Mức sáng xác nhận" : "Mức sáng đã lưu"} · ${light.brightness}%` : "Đang chờ ESP32 báo trạng thái."}</p><Link className={ui.button} href="/lighting">Điều chỉnh đèn</Link>
         </section>
         <section className={styles.deviceCard}>
           <div className={styles.deviceTop}><div className={`${styles.deviceIcon} ${styles.blue}`}><Camera size={25} /></div>

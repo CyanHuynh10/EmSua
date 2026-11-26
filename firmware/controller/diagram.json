@@ -1,0 +1,42 @@
+{
+  "version": 1,
+  "author": "Cyan Huynh",
+  "editor": "wokwi",
+  "parts": [
+    {
+      "type": "board-esp32-devkit-c-v4",
+      "id": "esp",
+      "top": -230.4,
+      "left": -484.76,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-pushbutton",
+      "id": "btn1",
+      "top": -99.4,
+      "left": -230.4,
+      "attrs": { "color": "green", "xray": "1" }
+    },
+    { "type": "wokwi-potentiometer", "id": "pot1", "top": -202.9, "left": -624.2, "attrs": {} },
+    {
+      "type": "wokwi-led-ring",
+      "id": "ring1",
+      "top": -306.56,
+      "left": -325.21,
+      "attrs": { "pixels": "16" }
+    }
+  ],
+  "connections": [
+    [ "esp:TX", "$serialMonitor:RX", "", [] ],
+    [ "esp:RX", "$serialMonitor:TX", "", [] ],
+    [ "ring1:GND", "esp:GND.2", "gray", [ "v19.2", "h-86.4", "v-67.2" ] ],
+    [ "ring1:VCC", "esp:5V", "red", [ "v153.6", "h-240", "v-28.8" ] ],
+    [ "ring1:DIN", "esp:23", "gold", [ "v38.4", "h-86.4", "v-76.8" ] ],
+    [ "btn1:1.l", "esp:21", "green", [ "h-134.4", "v-67.2" ] ],
+    [ "btn1:2.l", "esp:GND.3", "gray", [ "h-144", "v-76.6" ] ],
+    [ "pot1:VCC", "esp:3V3", "red", [ "h-0.8", "v28.8", "h76.8", "v-96" ] ],
+    [ "pot1:SIG", "esp:34", "blue", [ "h-0.4", "v38.4", "h76.8", "v-67.2" ] ],
+    [ "pot1:GND", "esp:GND.1", "gray", [ "v0" ] ]
+  ],
+  "dependencies": {}
+}

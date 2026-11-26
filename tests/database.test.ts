@@ -12,7 +12,7 @@ const mutate = async (action: string, data: object = {}) => {
 
 beforeAll(async () => { db = await openDatabase(); });
 beforeEach(async () => {
-  await db.exec(`truncate activity_logs, login_limits, device_commands, schedule_executions, feeding_schedules, lighting_schedules;
+  await db.exec(`truncate activity_logs, login_limits, device_commands, lighting_commands, schedule_executions, feeding_schedules, lighting_schedules;
     update system_settings set version=1, servo_ms=3000;
     update device_states set power=false, brightness=75;`);
 });

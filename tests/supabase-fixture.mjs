@@ -7,6 +7,7 @@ const endpoints = {
   sua_snapshot: ["select sua_snapshot() as result", []],
   sua_activity: ["select sua_activity($1, $2) as result", ["p_before", "p_limit"]],
   sua_mutate: ["select sua_mutate($1, $2) as result", ["p_action", "p_data"]],
+  sua_lighting_sim: ["select sua_lighting_sim($1, $2) as result", ["p_action", "p_data"]],
   sua_login_limit: ["select sua_login_limit($1) as result", ["p_bucket"]],
 };
 

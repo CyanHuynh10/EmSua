@@ -5,9 +5,12 @@ import { passwordMatches } from "@/server/auth/crypto";
 import { adminConfig, loginBucket, requestOrigin, setSession, signedIn } from "@/server/auth/session";
 import { rpc } from "@/server/database/rpc";
 import { activity, deviceAdapter, mutate, snapshot } from "@/server/services/home";
+import { lightingDevice, simulationEnabled } from "@/server/services/lighting-device";
 
 const time = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/);
 const schedule = z.object({ version: z.number().int().min(0).max(2147483647), day: z.iso.date() });
+const mode = z.enum(["mock", "simulation"]);
+const lightSchedule = schedule.extend({ expected_mode: mode.optional() });
 const empty = z.strictObject({});
 const actions: Record<string, { name: string; schema: z.ZodType<object> }> = {
   "POST feeder/dispense": { name: "dispense", schema: z.strictObject({ request_id: z.uuid() }) },
@@ -15,14 +18,15 @@ const actions: Record<string, { name: string; schema: z.ZodType<object> }> = {
   "DELETE feeder/schedule": { name: "cancel_feed", schema: schedule.strict() },
   "PATCH light": {
     name: "light",
-    schema: z.strictObject({ power: z.boolean().optional(), brightness: z.number().int().min(0).max(100).optional() })
+    schema: z.strictObject({ power: z.boolean().optional(), brightness: z.number().int().min(0).max(100).optional(),
+      request_id: z.uuid().optional(), expected_mode: mode.optional() })
       .refine((value) => value.power !== undefined || value.brightness !== undefined),
   },
   "PUT light/schedule": {
     name: "light_schedule",
-    schema: schedule.extend({ on_at: time, off_at: time }).strict().refine((value) => value.on_at < value.off_at),
+    schema: lightSchedule.extend({ on_at: time, off_at: time }).strict().refine((value) => value.on_at < value.off_at),
   },
-  "DELETE light/schedule": { name: "cancel_light", schema: schedule.strict() },
+  "DELETE light/schedule": { name: "cancel_light", schema: lightSchedule.strict() },
   "PATCH camera": { name: "camera", schema: z.strictObject({ power: z.boolean() }) },
   "PATCH settings": {
     name: "settings",
@@ -33,12 +37,12 @@ const actions: Record<string, { name: string; schema: z.ZodType<object> }> = {
 
 const readers: Record<string, (data: Snapshot) => unknown> = {
   dashboard: (data) => data,
-  devices: (data) => ({ mode: deviceAdapter().mode, connected: deviceAdapter().connected, feeder: data.feeder, light: data.light, camera: data.camera }),
+  devices: (data) => ({ mode: deviceAdapter().mode, connected: deviceAdapter().connected, feeder: data.feeder, light: data.light, camera: data.camera, controller: data.controller }),
   "feeder/schedule": (data) => data.feeding,
-  light: (data) => data.light,
+  light: (data) => data.controller?.mode === "simulation" ? { ...data.controller.reported, controller: data.controller } : data.light,
   "light/schedule": (data) => data.lighting,
   camera: (data) => ({ status: data.camera }),
-  settings: (data) => ({ ...data.settings, mode: deviceAdapter().mode, connected: deviceAdapter().connected }),
+  settings: (data) => ({ ...data.settings, mode: deviceAdapter().mode, connected: deviceAdapter().connected, controller: data.controller }),
 };
 
 const domainErrors: Record<string, [number, string]> = {
@@ -48,6 +52,11 @@ const domainErrors: Record<string, [number, string]> = {
   FEEDER_COOLDOWN: [429, "Chờ vài giây trước khi bắt đầu chu trình mới."],
   SCHEDULE_LOCKED: [409, "Mốc lịch đã đến giờ hoặc đã được xử lý."],
   PAST_TIME: [422, "Chọn giờ còn lại trong hôm nay theo đúng thứ tự."],
+  DEVICE_OFFLINE: [409, "ESP32 Wokwi đang ngoại tuyến."],
+  MODE_CHANGED: [409, "Chế độ đèn đã thay đổi. Tải lại trạng thái để tiếp tục."],
+  COMMAND_IN_PROGRESS: [409, "Đợi ESP32 xử lý xong lệnh trước khi đổi chế độ."],
+  QUEUE_FULL: [429, "Hàng đợi đèn đã đầy. Thử lại sau."],
+  RATE_LIMITED: [429, "Đợi một chút trước khi gửi lệnh tiếp theo."],
 };
 
 const headers = { "Cache-Control": "no-store" };
@@ -62,8 +71,15 @@ async function handle(request: Request, ctx: RouteContext<"/api/[...segments]">)
   const method = request.method;
   const isLogin = route === "auth/login" && method === "POST";
   try {
+    if (route.startsWith("device/")) return await lightingDevice(request, route.slice("device/".length));
     if (!isLogin && !(await signedIn())) return failure(401, "UNAUTHENTICATED", "Vui lòng đăng nhập.");
     if (method === "GET") {
+      if (simulationEnabled() && route.startsWith("light/commands/")) {
+        const id = z.uuid().safeParse(route.slice("light/commands/".length));
+        if (!id.success) return failure(422, "VALIDATION_ERROR", "Mã lệnh không hợp lệ.");
+        const result = await rpc<Record<string, unknown>>("sua_lighting_sim", { p_action: "command", p_data: { commandId: id.data } });
+        return result.error ? failure(404, "COMMAND_NOT_FOUND", "Không tìm thấy lệnh đèn.") : success(result);
+      }
       if (route === "activity") {
         const params = new URL(request.url).searchParams;
         const query = z.object({
@@ -101,16 +117,27 @@ async function handle(request: Request, ctx: RouteContext<"/api/[...segments]">)
       await setSession(origin.protocol === "https:", true);
       return success(null);
     }
+    if (route === "settings/lighting" && method === "PATCH" && simulationEnabled()) {
+      const requested = z.strictObject({ mode }).safeParse(body);
+      if (!requested.success) return failure(422, "VALIDATION_ERROR", "Chế độ đèn không hợp lệ.");
+      const result = await rpc<{ error?: string }>("sua_lighting_sim", { p_action: "mode", p_data: requested.data });
+      return result.error ? failure(409, result.error, domainErrors.COMMAND_IN_PROGRESS[1]) : success(result);
+    }
     const action = actions[`${method} ${route}`];
     if (!action) return failure(404, "NOT_FOUND", "Không tìm thấy API.");
     const payload = action.schema.safeParse(body);
     if (!payload.success) return failure(422, "VALIDATION_ERROR", "Kiểm tra lại các trường đã nhập.");
+    if ("expected_mode" in payload.data && payload.data.expected_mode === "simulation" && !simulationEnabled()) {
+      return failure(409, "MODE_CHANGED", domainErrors.MODE_CHANGED[1]);
+    }
     const result = await mutate(action.name, payload.data);
     if (typeof result.error === "string") {
       const [status, message] = domainErrors[result.error] ?? [400, "Không xử lý được yêu cầu."];
       return failure(status, result.error, message);
     }
-    return success(result, result.status === "executing" && result.duplicate === false ? 202 : 200);
+    const accepted = result.status === "pending" || result.status === "claimed" ||
+      (result.status === "executing" && result.duplicate === false);
+    return success(result, accepted ? 202 : 200);
   } catch (error) {
     console.error("[sua]", method, route, error instanceof Error ? error.message : "Unexpected error");
     return failure(503, "SERVICE_UNAVAILABLE", "Dịch vụ đang gián đoạn. Vui lòng thử lại sau.");

@@ -1,0 +1,41 @@
+name: Lighting inputs and state
+version: 1
+steps:
+  - wait-serial: "State: OFF | Brightness: 50%"
+  - wait-serial: "Ready"
+  - set-control: {part-id: btn1, name: pressed, value: 1}
+  - wait-serial: "State: ON | Brightness: 50%"
+  - delay: 300ms
+  - write-serial: "1"
+  - wait-serial: "Skipped: already ON"
+  - set-control: {part-id: btn1, name: pressed, value: 0}
+  - delay: 100ms
+  - set-control: {part-id: pot1, name: position, value: 0.75}
+  - wait-serial: "State: ON | Brightness: 75%"
+  - set-control: {part-id: btn1, name: pressed, value: 1}
+  - wait-serial: "State: OFF | Brightness: 75%"
+  - set-control: {part-id: btn1, name: pressed, value: 0}
+  - delay: 100ms
+  - write-serial: "0"
+  - wait-serial: "Skipped: already OFF"
+  - write-serial: "t"
+  - wait-serial: "State: ON | Brightness: 75%"
+  - write-serial: "+"
+  - wait-serial: "State: ON | Brightness: 85%"
+  - delay: 300ms
+  - write-serial: "s"
+  - wait-serial: "State: ON | Brightness: 85%"
+  - write-serial: "-"
+  - wait-serial: "State: ON | Brightness: 75%"
+  - write-serial: "0"
+  - wait-serial: "State: OFF | Brightness: 75%"
+  - set-control: {part-id: pot1, name: position, value: 0.25}
+  - wait-serial: "State: OFF | Brightness: 25%"
+  - write-serial: "1"
+  - wait-serial: "State: ON | Brightness: 25%"
+  - set-control: {part-id: pot1, name: position, value: 0.5}
+  - wait-serial: "State: ON | Brightness: 50%"
+  - set-control: {part-id: pot1, name: position, value: 1.0}
+  - wait-serial: "State: ON | Brightness: 100%"
+  - set-control: {part-id: pot1, name: position, value: 0.0}
+  - wait-serial: "State: ON | Brightness: 0%"

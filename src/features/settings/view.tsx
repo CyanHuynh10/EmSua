@@ -6,7 +6,7 @@ import ui from "@/components/ui/ui.module.css";
 import { DataBoundary, PageTitle, Panel, Pill } from "../dashboard/view";
 import styles from "../dashboard/view.module.css";
 import { useHome } from "../home-provider";
-import { SERVO_MAX, SERVO_MIN, type Snapshot } from "../model";
+import { LIGHTING_DEVICE_ID, localTime, MODE_LABEL, SERVO_MAX, SERVO_MIN, type LightingController, type Snapshot } from "../model";
 import { useMutation } from "../use-mutation";
 
 function SettingsForm({ settings }: { settings: Snapshot["settings"] }) {
@@ -34,16 +34,36 @@ function SettingsForm({ settings }: { settings: Snapshot["settings"] }) {
   </Panel>;
 }
 
+function LightingSettings({ controller }: { controller?: LightingController }) {
+  const { run, busy, issue } = useMutation();
+  const mode = controller?.mode ?? "mock";
+  return <Panel title="Kết nối đèn" icon={<Cable size={20} />}>
+    <label className={ui.field}>Chế độ đèn
+      <select className={ui.input} value={mode} disabled={!controller || busy} onChange={(event) => {
+        void run("settings/lighting", "PATCH", { mode: event.target.value }, "Đã đổi chế độ đèn.");
+      }}>
+        <option value="mock">{MODE_LABEL.mock}</option>
+        <option value="simulation" disabled={!controller}>{MODE_LABEL.simulation}</option>
+        <option value="real" disabled>{MODE_LABEL.real}</option>
+      </select>
+    </label>
+    <p className={styles.muted}>{controller ? controller.deviceId : LIGHTING_DEVICE_ID}</p>
+    {controller ? <>
+      <Pill tone={controller.online ? "mint" : "neutral"}>{controller.online ? "Online" : "Offline"}</Pill>
+      <p className={styles.muted}>Tín hiệu cuối {controller.lastSeenAt ? localTime(controller.lastSeenAt) : "chưa nhận được"}</p>
+      {controller.firmwareVersion && <p className={styles.muted}>Firmware {controller.firmwareVersion}</p>}
+    </> : <p className={styles.muted}>Simulation Mode chưa được cấu hình trong môi trường này.</p>}
+    {issue && <p role="alert" className={ui.error}>{issue.message}</p>}
+  </Panel>;
+}
+
 export function SettingsView() {
   const { data } = useHome();
   return <div className={styles.page}>
     <PageTitle title="Cài đặt" subtitle="Cấu hình servo và kiểm tra chế độ hoạt động của hệ thống." />
     <DataBoundary>{data && <div className={styles.twoCol}>
       <SettingsForm settings={data.settings} />
-      <Panel title="Kết nối thiết bị" icon={<Cable size={20} />}>
-        <Pill tone="yellow">Mock Mode</Pill><p>Chưa kết nối ESP32.</p>
-        <p className={styles.muted}>Real Mode sẽ khả dụng khi backend và phần cứng sẵn sàng.</p>
-      </Panel>
+      <LightingSettings controller={data.controller} />
     </div>}</DataBoundary>
   </div>;
 }
