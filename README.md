@@ -62,7 +62,7 @@ Phiên Admin dùng cookie trình duyệt với thời hạn server bốn giờ. 
 
 ### Simulation Mode của Lighting
 
-1. Xác minh Supabase Development riêng trong dashboard. Áp dụng migration khởi tạo nếu database mới, rồi chạy [migration Lighting](supabase/migrations/202611270001_lighting_simulation.sql). Với database đã có schema khởi tạo, kiểm tra migration history và chỉ chạy phần còn thiếu.
+1. Xác minh đúng dự án Supabase dành cho kiểm thử trong dashboard. Áp dụng migration khởi tạo nếu database mới, rồi chạy [migration Lighting](supabase/migrations/202611270001_lighting_simulation.sql) và [migration giới hạn cập nhật theo thiết bị](supabase/migrations/202611270002_scope_lighting_controller.sql) theo thứ tự. Với database đã có schema khởi tạo, kiểm tra migration history và chỉ chạy phần còn thiếu.
 2. Tạo token riêng cho ESP32 và đặt `LIGHTING_DEVICE_TOKEN_HASH` theo [hướng dẫn firmware](firmware/controller/README.md). Cấu hình website Preview trỏ tới Supabase Development. Bật biến này sau khi kiểm tra thấy RPC `sua_lighting_sim` trên Development. Production Vercel vô hiệu hóa Device API.
 3. Đăng nhập website Preview, mở **Cài đặt → Chế độ đèn → Simulation Mode — Wokwi**. Feeder và Camera tiếp tục dùng Mock Mode. Real Mode hiện hiển thị ở trạng thái chưa khả dụng.
 4. Build firmware và nạp ảnh flash hợp nhất vào project Wokwi trong Edge theo [hướng dẫn firmware](firmware/controller/README.md). Đợi **Online** trong Cài đặt hoặc trang **Đèn**. Thử bật/tắt, trượt qua 0/25/50/75/100%, kiểm tra giữ 75% khi bật lại, rồi nhấn nút và xoay biến trở trong Wokwi. Đối chiếu trang Đèn, Dashboard, Serial Monitor và nhật ký.

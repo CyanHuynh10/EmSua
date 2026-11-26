@@ -4,3 +4,4 @@
 #define SUA_DEVICE_BACKEND_URL ""
 #define SUA_DEVICE_TOKEN ""
 #define SUA_VERCEL_BYPASS ""
+#define SUA_VERCEL_COOKIE ""

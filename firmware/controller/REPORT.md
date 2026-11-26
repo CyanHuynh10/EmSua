@@ -3,10 +3,38 @@
 ## Lighting Integration V1.0 · 27/11/2026
 
 - Website đã có Simulation Mode cho Lighting. Device API xác thực bằng token riêng. Hàng đợi FIFO lưu lệnh trong PostgreSQL và chỉ hoàn thành lệnh khi ESP32 gửi ACK hợp lệ. Dashboard dùng trạng thái do thiết bị báo cáo.
-- Supabase project Mock hiện có đã nhận migration `lighting_simulation`, phiên bản hosted `20261126173235`, sau khi người dùng phê duyệt việc dùng chung với Production. Đã kiểm tra RLS của hàng đợi, quyền thực thi dành cho `service_role` và quyền bị từ chối với `anon`. Lịch Mock và Simulation dùng hai tập bản ghi trong cùng bảng. Feeder và Camera dùng Mock.
-- Website dùng Next.js 16.4.6 và Node.js 24.16.0 trong phiên kiểm thử. Vitest chạy 15 ca trên PostgreSQL PGlite. Playwright chạy kiểm thử website trên Microsoft Edge với client HTTP đóng vai thiết bị. Các kiểm thử này xác minh ACK, lỗi driver mô phỏng, trạng thái hai chiều và giao diện desktop/mobile. Bằng chứng phần cứng cần lấy từ tab Wokwi.
+- Supabase project Mock hiện có (`thuyqvqqtjcmjpupzrvu`) đã nhận `lighting_simulation` (`20261126173235`) và `scope_lighting_controller` (`20261126174625`) sau khi người dùng phê duyệt việc dùng chung với Production. Bản bổ sung xử lý lỗi `21000` bằng cách giới hạn cập nhật theo Device ID để tương thích `pg-safeupdate` của PostgREST. Đã xác minh RLS, quyền RPC của `service_role` và việc từ chối quyền RPC của `anon`. Lịch Mock và Simulation dùng hai tập bản ghi trong cùng bảng. Feeder và Camera dùng Mock. [Cấu hình Postgres của Supabase](https://supabase.com/docs/guides/database/custom-postgres-config)
+- Website dùng Next.js 16.4.6 và Node.js 24.16.0 trong phiên kiểm thử. Lint, typecheck, build và 15 ca Vitest/PGlite đã qua. Năm ca Playwright trên Edge dùng website local và client HTTP thay mặt thiết bị để kiểm tra ACK, lỗi driver, trạng thái hai chiều, đăng nhập, điều hướng và responsive. Mã lệnh của ca local là `aac6ec09-778e-440f-afcc-aa9905da2508`. [Kết quả Playwright local](../../fix/lighting-edge-results.json)
 - Firmware ESP-IDF v5.5.4 build được cho ESP32. Lớp Lighting dùng GPIO23 cho NeoPixel, GPIO21 cho nút và ADC1_CH6/GPIO34 cho biến trở. Wi-Fi, SNTP, HTTPS và xác nhận lệnh chạy trong task riêng. Cấu hình test nằm ngoài Git.
-- Nhánh tích hợp dự kiến `codex/lighting-wokwi-integration` dùng Vercel Preview của project `emsua`. Phiên nghiệm thu sử dụng [project Wokwi Em Sữa trong Edge](https://wokwi.com/projects/481740025407666177). Xem các bước chạy, log và cấu hình trong [tài liệu firmware](README.md).
+- Đã push nhánh `codex/lighting-wokwi-integration`. Bản Vercel Preview dùng để nghiệm thu build `READY` từ `a3999f7`; runtime log ghi `claim` và `ack` theo command ID. Preview có cấu hình tài khoản kiểm thử riêng cho nhánh. [Vercel Preview](https://emsua-itojl1wcb-cyanhuynh10s-projects.vercel.app) · [Nhánh trên GitHub](https://github.com/CyanHuynh10/EmSua/tree/codex/lighting-wokwi-integration)
+- Simulator chạy từ [project Wokwi Em Sữa trên Edge](https://wokwi.com/projects/481740025407666177) trong một cửa sổ kiểm thử riêng. Đã nạp ảnh ESP-IDF hợp nhất qua lệnh trình soạn thảo và xác minh khởi động OFF/50%, nút nhấn chuyển ON và biến trở tăng lên 100%. Wokwi CLI 0.29.1 lint sơ đồ thành công, có một thông báo `unsupported-part` mức info. Luồng mô phỏng web chạy được với F1, không phụ thuộc `WOKWI_CLI_TOKEN`. [Ảnh kiểm thử độc lập](../../fix/wokwi-edge-standalone-on.png) · [Hướng dẫn firmware](README.md)
+
+### Nghiệm thu Vercel Preview ↔ Wokwi trên Edge
+
+| Ca kiểm thử | Trạng thái | Bằng chứng |
+| --- | --- | --- |
+| E2E-01 Device Connection | PASS | Serial báo HTTPS đã xác thực. Supabase lưu heartbeat và Preview hiện Online, OFF/50% |
+| E2E-02 Website Turn ON | PASS | `4a0e7fc3-66a8-474f-86ff-bc9514a39b70` trả HTTP 202, sau đó `completed`. Cả 16 LED ở RGB 128 và website hiện thông báo đã bật |
+| E2E-03 Website Turn OFF | PASS | `49fa3674-09cb-4fbd-907b-fb709a63c926` nhận ACK. Cả 16 LED về RGB 0 và website hiện OFF |
+| E2E-04 Website Brightness | PASS | Năm lệnh cho 0/25/50/75/100% đều hoàn thành. Giá trị RGB đọc từ 16 pixel khớp 0/64/128/191/255 |
+| E2E-05 Brightness Memory | PASS | Tắt rồi bật lại ở 75%. Lệnh bật lại `35b88b0d-e0dc-49fe-addf-a61a0e799bf8` xác nhận 75% |
+| E2E-06 Wokwi Pushbutton | PASS | Nút xanh tắt vòng LED. Event `lighting.local_power_changed` ghi OFF/75%. Dashboard nhận trạng thái mới |
+| E2E-07 Wokwi Potentiometer | PASS | Biến trở báo 100% khi đèn OFF. Slider đồng bộ lên 100% |
+| E2E-08 Device Offline | PASS | Dừng simulator. Preview hiện Offline và khóa nút nguồn. API trả 409 `DEVICE_OFFLINE` |
+| E2E-09 Reconnection | PASS | Nạp lại firmware. Heartbeat hoạt động và vòng LED khởi động OFF/50%, `stateVersion=0`. Lệnh `0a43217a-4b3e-4f00-9886-64d870b44a9a` chuyển sang `expired` trong thời gian simulator dừng và giữ trạng thái đó sau khi Wokwi kết nối lại |
+| E2E-10 Duplicate Commands | PASS | Gửi lại yêu cầu bật trả cùng command ID và `duplicate=true`. Vitest và HTTP local xác minh ACK trùng có tính idempotent |
+| E2E-11 Rapid Brightness Changes | PASS | Bốn thay đổi liên tiếp tạo một PATCH. Lệnh `c54fafa5-4603-4e1e-94d0-eed4418eb1d8` được xác nhận ở 65% |
+| E2E-12 Invalid Authentication | PASS | Preview trả HTTP 401 `INVALID_DEVICE_CREDENTIALS` với token sai |
+| E2E-13 Mode Isolation | PASS | Lệnh Mock trả kết quả trực tiếp, vòng LED Wokwi giữ OFF và reported state vẫn OFF/50%. Trạng thái Mock ban đầu được khôi phục sau kiểm thử |
+| E2E-14 Lighting Schedule | PASS | Ngày 27/11/2026, lịch bật lúc 00:55 và tắt lúc 00:56 theo giờ Việt Nam. Hai lệnh `bfd624b4-be65-44b2-bc70-6f6fbf7d6576` và `ec922c90-d5e3-4aa6-acad-0702f9cdab47` đều nhận ACK. Vòng LED sáng rồi tắt. Chỉ có hai lệnh hoàn thành từ lịch |
+
+Xem [kết quả 14 ca E2E](../../fix/lighting-wokwi-e2e.json), [kiểm tra lệnh hết hạn](../../fix/lighting-wokwi-expiry.json), [Serial Monitor](../../fix/wokwi-edge-serial.txt), [ảnh Preview sau ACK](../../fix/lighting-preview-ack.png) và [ảnh vòng LED đang sáng trên Wokwi](../../fix/wokwi-edge-preview-on.png). Tài khoản đăng nhập kiểm thử chỉ áp dụng cho nhánh Preview. Lịch nghiệm thu ngày 27/11 được giữ để đối chiếu với hai ACK. Vercel Production hiện phục vụ nhánh `main` tại `ce9a7bf`.
+
+### Vận hành sau nghiệm thu
+
+Website Preview và Device API đã qua nghiệm thu với Wokwi trên Edge. Quyền truy cập Preview tạm đã được thu hồi. Sau thu hồi, cookie và liên kết thử nghiệm đều nhận HTTP 401 ở lớp bảo vệ Vercel. Để chạy lại simulator, cấp quyền truy cập Preview mới, cấu hình thông tin thiết bị trong file local, build ảnh hợp nhất và nạp vào tab [Em Sữa](https://wokwi.com/projects/481740025407666177). Đăng nhập Preview, mở **Đèn**, đợi Online và kiểm tra cả lệnh từ website lẫn thao tác tại chỗ. Lịch chạy khi website có tab đang hiển thị và Wokwi đang hoạt động. Xem [cách chạy và đối chiếu log](README.md).
+
+Production Lighting cần phê duyệt triển khai riêng, cấu hình môi trường dành cho vận hành và nghiệm thu phần cứng trước khi mở Real Mode. Phiên này đã dùng Supabase chung với Production theo phê duyệt của người dùng và chạy ứng dụng tích hợp trên Vercel Preview.
 
 ## Lighting Simulation độc lập · Báo cáo lịch sử
 

@@ -88,6 +88,7 @@ writeFileSync('main/device_config.local.hpp', [
   '#define SUA_DEVICE_BACKEND_URL ' + JSON.stringify(url.origin),
   '#define SUA_DEVICE_TOKEN ' + JSON.stringify(token),
   '#define SUA_VERCEL_BYPASS ""',
+  '#define SUA_VERCEL_COOKIE ""',
   '',
 ].join('\n'), { flag: 'wx' });
 console.log('LIGHTING_DEVICE_TOKEN_HASH=' + createHash('sha256').update(token).digest('hex'));
@@ -97,7 +98,7 @@ console.log('LIGHTING_DEVICE_TOKEN_HASH=' + createHash('sha256').update(token).d
 }
 ```
 
-Nếu Preview dùng Deployment Protection, quản trị viên có thể cấu hình token phù hợp cho kiểm thử và điền cục bộ vào `SUA_VERCEL_BYPASS`. File local và binary chứa token cần giữ riêng. Build lại, nạp ảnh mới vào tab Wokwi trong Edge và theo dõi **Serial Monitor**. Firmware kết nối `Wokwi-GUEST` kênh 6, lấy thời gian qua SNTP và xác thực TLS qua ESP-IDF certificate bundle. Với `sdkconfig` cũ, có thể chạy `idf.py menuconfig` rồi kiểm tra **Partition Table → Single factory app (large), no OTA** và **Component config → mbedTLS → Certificate Bundle**. [Wokwi Wi-Fi](https://docs.wokwi.com/guides/esp32-wifi) · [Vercel Protection Bypass for Automation](https://vercel.com/docs/deployment-protection/methods-to-bypass-deployment-protection/protection-bypass-automation)
+Nếu Preview dùng Deployment Protection, có thể dùng cookie truy cập có thời hạn của deployment Preview qua `SUA_VERCEL_COOKIE`, hoặc dùng token automation đã được quản trị viên cấp qua `SUA_VERCEL_BYPASS`. Giữ các giá trị này, token thiết bị và binary trong workspace local. Khi quyền truy cập ngắn hạn hết hạn, cập nhật giá trị và build lại trước phiên Wokwi tiếp theo. Firmware kết nối `Wokwi-GUEST` kênh 6, lấy thời gian qua SNTP và xác thực TLS qua ESP-IDF certificate bundle. Với `sdkconfig` cũ, có thể chạy `idf.py menuconfig` rồi kiểm tra **Partition Table → Single factory app (large), no OTA** và **Component config → mbedTLS → Certificate Bundle**. [Wokwi Wi-Fi](https://docs.wokwi.com/guides/esp32-wifi) · [Bảo vệ deployment Vercel](https://vercel.com/docs/deployment-protection/methods-to-bypass-deployment-protection)
 
 Khi kết nối thành công, xem dòng `HTTPS authenticated, heartbeat acknowledged`. Command ID trong dòng `Command received` và `ACK accepted for` dùng để đối chiếu với Vercel và Supabase. Mở **Cài đặt** để chọn Simulation Mode và xem heartbeat. Bật/tắt và thay đổi độ sáng trên trang **Đèn**, sau đó thử thao tác tại chỗ. `firmware/controller/main/device_config.example.hpp` giữ cấu hình rỗng để mô phỏng độc lập. Tài liệu schema, API và quy tắc xử lý lịch nằm trong [README website](../../README.md).
 

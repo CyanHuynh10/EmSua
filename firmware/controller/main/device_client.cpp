@@ -28,6 +28,10 @@
 #include "device_config.example.hpp"
 #endif
 
+#ifndef SUA_VERCEL_COOKIE
+#define SUA_VERCEL_COOKIE ""
+#endif
+
 namespace {
 constexpr char kTag[] = "DEVICE";
 constexpr char kDeviceId[] = "sua-controller-wokwi-01";
@@ -142,6 +146,9 @@ Response post(const char* endpoint, const cJSON* body)
     esp_http_client_set_header(client, "Content-Type", "application/json");
     if (SUA_VERCEL_BYPASS[0] != '\0') {
         esp_http_client_set_header(client, "x-vercel-protection-bypass", SUA_VERCEL_BYPASS);
+    }
+    if (SUA_VERCEL_COOKIE[0] != '\0') {
+        esp_http_client_set_header(client, "Cookie", SUA_VERCEL_COOKIE);
     }
     esp_http_client_set_post_field(client, payload.get(), std::strlen(payload.get()));
     const auto error = esp_http_client_perform(client);
